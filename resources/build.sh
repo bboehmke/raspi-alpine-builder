@@ -7,6 +7,8 @@ set -e
 : ${ALPINE_BRANCH:="v3.11"}
 : ${ALPINE_MIRROR:="http://dl-cdn.alpinelinux.org/alpine"}
 
+: ${RPI_FIRMWARE_BRANCH:="stable"}
+
 : ${DEFAULT_TIMEZONE:="Etc/UTC"}
 : ${DEFAULT_HOSTNAME:="alpine"}
 : ${DEFAULT_ROOT_PASSWORD:="alpine"}
@@ -296,23 +298,19 @@ echo ">> Configure boot FS"
 
 # download base firmware
 mkdir -p ${BOOTFS_PATH}
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/bootcode.bin
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup_cd.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup_db.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup_x.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup4.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup4cd.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup4db.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/fixup4x.dat
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start_cd.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start_db.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start_x.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start4.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start4cd.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start4db.elf
-wget -P ${BOOTFS_PATH} https://github.com/raspberrypi/firmware/raw/master/boot/start4x.elf
+git clone \
+    --bare --depth 1 \
+    --filter=blob:none --no-checkout \
+    https://github.com/raspberrypi/firmware ${BOOTFS_PATH}/.git
+
+(cd ${BOOTFS_PATH} \
+    && git fetch origin ${RPI_FIRMWARE_BRANCH} \
+    && git branch ${RPI_FIRMWARE_BRANCH} FETCH_HEAD \
+    && git --work-tree=${BOOTFS_PATH} checkout ${RPI_FIRMWARE_BRANCH} \
+    -- `git ls-tree refs/heads/${RPI_FIRMWARE_BRANCH} -r --name-only | grep -E "^boot\/([^\/]+)(\.dat|\.elf)$"`)
+
+mv ${BOOTFS_PATH}/boot/* ${BOOTFS_PATH}
+rm -rf ${BOOTFS_PATH}/boot ${BOOTFS_PATH}/.git
 
 # copy linux device trees and overlays to boot
 cp ${ROOTFS_PATH}/boot/dtbs-rpi/*.dtb ${BOOTFS_PATH}/

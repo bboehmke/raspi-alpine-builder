@@ -73,7 +73,7 @@ builder.
 | SIZE_ROOT_FS                | 200M                                 | Size of root file system                                                                          |
 | SIZE_ROOT_PART              | 500M                                 | Size of root partition                                                                            |
 | UBOOT_COUNTER_RESET_ENABLED | true                                 | True to enable simple boot counter reset service                                                  |
-
+| RPI_FIRMWARE_BRANCH         | stable                               | [Raspberry Pi Firmware Branch](https://github.com/raspberrypi/firmware/branches) to use for image                                                    |
 ### Update running system
 
 The system can be updated without a complete flash of the SD card from the 

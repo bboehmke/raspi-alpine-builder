@@ -56,10 +56,13 @@ RUN arm-linux-gnueabi-gcc -Wall -static -static-libgcc -o /uboot_tool /uboot.c
 
 FROM alpine:3.11
 
-RUN apk update && \
-    apk add automake build-base git autoconf confuse-dev linux-headers \
-            findutils mtools e2fsprogs-extra alpine-sdk dosfstools uboot-tools && \
-    rm -rf /var/cache/apk/*
+RUN apk add --no-cache \
+        automake build-base git \
+        autoconf confuse-dev \
+        linux-headers findutils \
+        mtools e2fsprogs-extra \
+        alpine-sdk dosfstools \
+        uboot-tools
 
 RUN git clone https://github.com/pengutronix/genimage.git /tmp/genimage && \
     cd /tmp/genimage && \
